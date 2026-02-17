@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 use proc_macro2::Ident;
 use quote::format_ident;
 use syn::{LitStr, Token, bracketed, parse::Parse, punctuated::Punctuated};
@@ -6,6 +11,7 @@ pub enum InputField {
     Name(LitStr),
     Files(Punctuated<LitStr, Token![,]>),
     Directories(Punctuated<LitStr, Token![,]>),
+    DirectoryEnvVars(Punctuated<LitStr, Token![,]>),
 }
 
 impl Parse for InputField {
@@ -26,6 +32,12 @@ impl Parse for InputField {
             let content;
             bracketed!(content in input);
             Ok(Self::Directories(
+                Punctuated::<LitStr, Token![,]>::parse_terminated(&content)?,
+            ))
+        } else if ident == format_ident!("include_directory_env_vars") {
+            let content;
+            bracketed!(content in input);
+            Ok(Self::DirectoryEnvVars(
                 Punctuated::<LitStr, Token![,]>::parse_terminated(&content)?,
             ))
         } else {

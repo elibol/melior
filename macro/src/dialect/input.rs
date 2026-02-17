@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 mod input_field;
 
 use self::input_field::InputField;
@@ -8,6 +13,7 @@ pub struct DialectInput {
     name: String,
     files: Vec<String>,
     directories: Vec<String>,
+    directory_env_vars: Vec<String>,
 }
 
 impl DialectInput {
@@ -22,6 +28,10 @@ impl DialectInput {
     pub fn directories(&self) -> impl Iterator<Item = &str> {
         self.directories.iter().map(Deref::deref)
     }
+
+    pub fn directory_env_vars(&self) -> impl Iterator<Item = &str> {
+        self.directory_env_vars.iter().map(Deref::deref)
+    }
 }
 
 impl Parse for DialectInput {
@@ -29,6 +39,7 @@ impl Parse for DialectInput {
         let mut name = None;
         let mut files = vec![];
         let mut directories = vec![];
+        let mut directory_env_vars = vec![];
 
         for item in Punctuated::<InputField, Token![,]>::parse_terminated(input)? {
             match item {
@@ -39,6 +50,9 @@ impl Parse for DialectInput {
                 InputField::Directories(field) => {
                     directories = field.into_iter().map(|literal| literal.value()).collect()
                 }
+                InputField::DirectoryEnvVars(field) => {
+                    directory_env_vars = field.into_iter().map(|literal| literal.value()).collect()
+                }
             }
         }
 
@@ -46,6 +60,7 @@ impl Parse for DialectInput {
             name: name.ok_or_else(|| input.error("dialect name required"))?,
             files,
             directories,
+            directory_env_vars
         })
     }
 }

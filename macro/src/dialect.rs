@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 mod error;
 mod generation;
 mod input;
@@ -31,7 +36,7 @@ pub fn generate_dialect(input: DialectInput) -> Result<TokenStream, Box<dyn std:
 
     parser = parser.add_include_directory(LLVM_INCLUDE_DIRECTORY);
 
-    for path in input.directories() {
+    let get_path = |path: &str| {
         let path = if matches!(
             Path::new(path).components().next(),
             Some(Component::CurDir | Component::ParentDir)
@@ -40,8 +45,19 @@ pub fn generate_dialect(input: DialectInput) -> Result<TokenStream, Box<dyn std:
         } else {
             Path::new(LLVM_INCLUDE_DIRECTORY).join(path)
         };
+        path.display().to_string()
+    };
 
-        parser = parser.add_include_directory(&path.display().to_string());
+    for path in input.directories() {
+        let path = get_path(path);
+        parser = parser.add_include_directory(&path);
+    }
+
+    for env_var in input.directory_env_vars() {
+        if let Ok(path) = env::var(env_var) {
+            let path = get_path(&path);
+            parser = parser.add_include_directory(&path);
+        }
     }
 
     if input.files().count() > 0 {
