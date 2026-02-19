@@ -26,7 +26,7 @@ use tblgen::{TableGenParser, record::Record, record_keeper::RecordKeeper};
 
 const LLVM_INCLUDE_DIRECTORY: &str = env!("LLVM_INCLUDE_DIRECTORY");
 
-pub fn generate_dialect(input: DialectInput) -> Result<TokenStream, Box<dyn std::error::Error>> {
+pub fn generate_dialect(input: DialectInput) -> Result<TokenStream, Error> {
     let mut parser = TableGenParser::new();
 
     parser = parser.add_include_directory(LLVM_INCLUDE_DIRECTORY);
@@ -48,11 +48,15 @@ pub fn generate_dialect(input: DialectInput) -> Result<TokenStream, Box<dyn std:
         parser = parser.add_include_directory(&path);
     }
 
-    for env_var in input.directory_env_vars() {
-        if let Ok(path) = env::var(env_var) {
-            let path = get_path(&path);
-            parser = parser.add_include_directory(&path);
-        }
+    for (env_var, span) in input.directory_env_vars() {
+        let path = match env::var(env_var) {
+            Ok(path) => path,
+            Err(err) => {
+                return Err(syn::Error::new(span.clone(), err.to_string()).into())
+            }
+        };
+        let path = get_path(&path);
+        parser = parser.add_include_directory(&path);
     }
 
     if input.files().count() > 0 {
