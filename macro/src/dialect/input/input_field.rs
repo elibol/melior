@@ -1,8 +1,3 @@
-/*
- * SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
-
 use proc_macro2::Ident;
 use quote::format_ident;
 use syn::{LitStr, Token, bracketed, parse::Parse, punctuated::Punctuated};
