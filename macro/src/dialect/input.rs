@@ -55,7 +55,7 @@ impl Parse for DialectInput {
             name: name.ok_or_else(|| input.error("dialect name required"))?,
             files,
             directories,
-            directory_env_vars
+            directory_env_vars,
         })
     }
 }
